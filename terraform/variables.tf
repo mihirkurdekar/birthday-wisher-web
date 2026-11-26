@@ -47,7 +47,7 @@ variable "birth_date" {
 }
 
 variable "time_zone" {
-  description = "Deprecated — birthday states are now computed client-side from the browser's local timezone via Moment.js. Kept for backward compatibility."
+  description = "IANA timezone for the state machine (server-side /wish enforcement). Client recomputes state from browser local time via Moment.js. Set to recipient's timezone (e.g. Asia/Dubai) so server enforcement matches their local midnight."
   type        = string
   default     = ""
 }

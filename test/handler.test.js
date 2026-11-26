@@ -60,24 +60,33 @@ async function run(name, fn) {
 // ---------------------------------------------------------------------------
 (async () => {
   // -----------------------------------------------------------------------
-  // "Midnight the day before" boundary
+  // "1 minute before the birthday" boundary
+  //   locked  — everything before 23:59:00 of (birthday - 1)
+  //   open    — 23:59:00 of (birthday - 1) through 23:59:59.999 of birthday
+  //   closed  — after 23:59:59.999 of birthday
   // -----------------------------------------------------------------------
-  await run("computeState: locked just before day-before-midnight", () => {
-    // Nov 25 2025 23:59:59.999 UTC is the last moment of the locked window
-    const s = computeState(Date.UTC(2025, 10, 25, 23, 59, 59, 999), { birthDate: "2025-11-27", timeZone: "UTC" });
+  await run("computeState: locked just before 1-minute-before (Nov 26 23:58:59.999)", () => {
+    // One second before the 1-minute-before boundary for a Nov 27 birthday
+    const s = computeState(Date.UTC(2025, 10, 26, 23, 58, 59, 999), { birthDate: "2025-11-27", timeZone: "UTC" });
     assert.equal(s.state, "locked");
   });
 
-  await run("computeState: open at day-before-midnight (00:00:00.000)", () => {
-    // Nov 26 2025 00:00:00.000 UTC = start of open window
-    const s = computeState(Date.UTC(2025, 10, 26, 0, 0, 0, 0), { birthDate: "2025-11-27", timeZone: "UTC" });
+  await run("computeState: open exactly 1 minute before birthday (Nov 26 23:59:00.000)", () => {
+    // Exactly 1 minute before the birthday — start of open window
+    const s = computeState(Date.UTC(2025, 10, 26, 23, 59, 0, 0), { birthDate: "2025-11-27", timeZone: "UTC" });
     assert.equal(s.state, "open");
   });
 
-  await run("computeState: open throughout day-before", () => {
-    // Nov 26 2025 12:00 UTC is mid-day-before — still open
+  await run("computeState: locked at start of day-before (Nov 26 00:00:00.000)", () => {
+    // Midnight of the day before is now still LOCKED (open only starts 1 min before)
+    const s = computeState(Date.UTC(2025, 10, 26, 0, 0, 0, 0), { birthDate: "2025-11-27", timeZone: "UTC" });
+    assert.equal(s.state, "locked");
+  });
+
+  await run("computeState: locked throughout day-before (Nov 26 12:00)", () => {
+    // Mid-day-before — still locked under the new 1-minute-before semantics
     const s = computeState(Date.UTC(2025, 10, 26, 12, 0, 0), { birthDate: "2025-11-27", timeZone: "UTC" });
-    assert.equal(s.state, "open");
+    assert.equal(s.state, "locked");
   });
 
   await run("computeState: open on birthday morning", () => {
@@ -102,19 +111,21 @@ async function run(name, fn) {
     assert.equal(s.state, "closed");
   });
 
-  await run("computeState: month rollover day-before works (Dec 1 birthday)", () => {
-    // Nov 30 00:00 is the day-before-midnight for Dec 1 birthday
+  await run("computeState: month rollover works (Dec 1 birthday)", () => {
+    // Nov 30 00:00 is still LOCKED (open starts Nov 30 23:59:00 for Dec 1 birthday)
     const s = computeState(Date.UTC(2025, 10, 30, 0, 0, 0), { birthDate: "2025-12-01", timeZone: "UTC" });
-    assert.equal(s.state, "open");
-    // Nov 29 23:59:59.999 is still locked
-    const locked = computeState(Date.UTC(2025, 10, 29, 23, 59, 59, 999), { birthDate: "2025-12-01", timeZone: "UTC" });
-    assert.equal(locked.state, "locked");
+    assert.equal(s.state, "locked");
+    // Nov 30 23:59:00 is the 1-minute-before open point
+    const open = computeState(Date.UTC(2025, 10, 30, 23, 59, 0, 0), { birthDate: "2025-12-01", timeZone: "UTC" });
+    assert.equal(open.state, "open");
   });
 
-  await run("computeState: leap-year Feb 29 (day before = Feb 28)", () => {
-    // Feb 28 00:00 2028 is the day-before-midnight for Feb 29 2028 birthday
+  await run("computeState: leap-year Feb 29 (Feb 28 is locked)", () => {
+    // Feb 28 00:00 2028 is still LOCKED; open starts Feb 28 23:59:00 for Feb 29 birthday
     const s = computeState(Date.UTC(2028, 1, 28, 0, 0, 0), { birthDate: "2028-02-29", timeZone: "UTC" });
-    assert.equal(s.state, "open");
+    assert.equal(s.state, "locked");
+    const open = computeState(Date.UTC(2028, 1, 28, 23, 59, 0, 0), { birthDate: "2028-02-29", timeZone: "UTC" });
+    assert.equal(open.state, "open");
   });
 
   // -----------------------------------------------------------------------
@@ -130,8 +141,8 @@ async function run(name, fn) {
   });
 
   await run("GET / in open state serves HTML with open state + friendName", async () => {
-    // Nov 26 12:00 — day before birthday — should be open
-    process.env.OVERRIDE_NOW = "2025-11-26T12:00:00Z";
+    // Nov 27 12:00 — birthday noon — should be open (new 1-min-before window)
+    process.env.OVERRIDE_NOW = "2025-11-27T12:00:00Z";
     const res = await handler(event("GET", "/"));
     assert.equal(res.statusCode, 200);
     assert.ok(res.body.includes('"state":"open"'));
@@ -160,7 +171,7 @@ async function run(name, fn) {
   });
 
   await run("POST /wish returns 200 with wishes in open state", async () => {
-    process.env.OVERRIDE_NOW = "2025-11-26T12:00:00Z";
+    process.env.OVERRIDE_NOW = "2025-11-27T12:00:00Z";
     lastWishArgs = null;
     const res = await handler(event("POST", "/wish", { wishes: [] }));
     assert.equal(res.statusCode, 200);
@@ -176,7 +187,7 @@ async function run(name, fn) {
   });
 
   await run("POST /wish passes wish history to AI", async () => {
-    process.env.OVERRIDE_NOW = "2025-11-26T12:00:00Z";
+    process.env.OVERRIDE_NOW = "2025-11-27T12:00:00Z";
     lastWishArgs = null;
     await handler(event("POST", "/wish", { wishes: ["wish1", "wish2", "wish3"] }));
     assert.ok(lastWishArgs);
@@ -184,7 +195,7 @@ async function run(name, fn) {
   });
 
   await run("POST /wish supports multiple wishes in one go (count=3)", async () => {
-    process.env.OVERRIDE_NOW = "2025-11-26T12:00:00Z";
+    process.env.OVERRIDE_NOW = "2025-11-27T12:00:00Z";
     lastWishArgs = null;
     const res = await handler(event("POST", "/wish", { wishes: [], count: 3 }));
     assert.equal(res.statusCode, 200);
@@ -194,7 +205,7 @@ async function run(name, fn) {
   });
 
   await run("POST /wish clamps count to max 5", async () => {
-    process.env.OVERRIDE_NOW = "2025-11-26T12:00:00Z";
+    process.env.OVERRIDE_NOW = "2025-11-27T12:00:00Z";
     lastWishArgs = null;
     await handler(event("POST", "/wish", { wishes: [], count: 99 }));
     assert.equal(lastWishArgs.count, 5);
