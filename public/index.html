@@ -36,6 +36,8 @@
       min-height: 100svh;
       margin: 0 auto;
       padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
     }
 
     /* ---- Locked: countdown ---- */
@@ -104,6 +106,22 @@
       background: var(--accent); color: white; border: none; border-radius: 28px;
       padding: 12px 24px; font-size: 17px; font-weight: 700; min-width: 180px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .app-footer {
+      margin-top: auto;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--line);
+    }
+    .app-footer a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .app-footer a:hover {
+      text-decoration: underline;
     }
 
     /* ---- Closed: surprise ---- */
@@ -176,6 +194,11 @@
       <p class="message">Thanks for sharing this special day. Come back next year!</p>
     </section>
 
+  </section>
+
+  <footer class="app-footer">
+    Made with ❤️ by <a href="https://github.com/mihirkurdekar" target="_blank" rel="noopener">Mihir</a>
+  </footer>
   </main>
 
   <canvas id="confetti-canvas" aria-hidden="true"></canvas>
