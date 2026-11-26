@@ -1,0 +1,24 @@
+aws_region     = "us-east-1"
+source_dir     = ".."
+role_name      = "birthday-wisher-lambda-role"
+function_name  = "birthday-wisher"
+handler        = "index.handler"
+runtime        = "nodejs22.x"
+
+# Birthday config — required
+friend_name   = "Aria"
+birth_date    = "2025-11-27"
+time_zone     = ""
+tone          = "warm"
+memories      = "[\"The time we got lost in Kyoto\", \"Your laugh when the cat stole your sandwich\", \"You remember everyone's coffee order\"]"
+
+# AI config — required for AI wishes; fallbacks used if missing
+ai_api_key    = "YOUR_AI_API_KEY"
+ai_model      = "gemini-2.5-flash"
+
+# Cost control — anyone with the URL can call /wish
+reserved_concurrency = 5
+
+# Optional CORS origin. Set to your Function URL or leave empty for wildcard.
+self_origin    = ""
+allowed_origins = ["*"]

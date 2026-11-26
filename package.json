@@ -1,0 +1,24 @@
+{
+  "name": "birthday-wisher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mobile-first AI birthday wishing site on AWS Lambda. Locked countdown → open-day cake + AI wishes → closed surprise page.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -e \"console.log('Deployment is managed via terraform; see README for local dev.')\"",
+    "dev": "node scripts/dev-server.js",
+    "stop": "lsof -ti:8000 | xargs -r kill 2>/dev/null; echo \"Stopped dev server on :8000\"",
+    "deploy": "./scripts/deploy-terraform.sh",
+    "test": "node test/handler.test.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "moment": "^2.31.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

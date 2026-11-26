@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8c8d8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; connect-src 'self';">
+  <title>Happy Birthday!</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fdf6f0;
+      --panel: #fff8f4;
+      --ink: #2d1b15;
+      --muted: #8b6b5f;
+      --accent: #e88e71;
+      --accent-light: #f5c9c5;
+      --candle-flame: #ffddc1;
+      color-scheme: light;
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; background: var(--bg); color: var(--ink); }
+    body { min-height: 100svh; overflow-x: hidden; }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+
+    /* ---- Shared ---- */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .app {
+      width: min(100%, 560px);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
+    }
+
+    /* ---- Locked: countdown ---- */
+    .locked { text-align: center; padding-top: 8vh; }
+    .locked .countdown { font-size: clamp(48px, 14vw, 88px); font-weight: 700; color: var(--accent); margin: 24px 0 8px; letter-spacing: -1px; }
+    .locked .subtitle { color: var(--muted); font-size: 18px; line-height: 1.4; max-width: 280px; margin: 0 auto 32px; }
+    .locked .cake {
+      width: 120px; height: 120px; margin: 32px auto;
+      background: linear-gradient(135deg, #ffe8ec 0%, #ffd1d8 100%);
+      border-radius: 50% 50% 30% 30%;
+      position: relative;
+      border: 8px solid #ffe0e5;
+    }
+    .locked .cake::after { content: ""; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 30px; height: 12px; background: #d69eab; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .locked .candle { width: 14px; height: 26px; background: #e86a6a; position: absolute; top: 8px; border-radius: 3px 3px 0 0; }
+    .locked .candle:nth-child(1) { left: 12%; }
+    .locked .candle:nth-child(2) { left: 32%; }
+    .locked .candle:nth-child(3) { left: 50%; transform: translateX(-50%); }
+    .locked .candle:nth-child(4) { left: 68%; transform: translateX(-50%); }
+    .locked .candle:nth-child(5) { left: 88%; transform: translateX(-50%); }
+    .locked .candle .flame { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 14px solid var(--candle-flame); }
+
+    /* ---- Open: cake + AI greeting + confetti ---- */
+    .open { position: relative; }
+    .open .header { text-align: center; padding: 8px 16px 0; }
+    .open .header h1 { font-family: "DM Serif Display", Georgia, serif; font-size: clamp(30px, 8vw, 44px); letter-spacing: -1px; margin: 0; }
+    .open .tagline { color: var(--muted); font-size: 15px; margin: 8px 0 0; }
+    .open .greeting-card {
+      background: var(--panel); border-radius: 16px; padding: 22px;
+      margin: 20px auto; max-width: 92%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .open .greeting-card .wish-text { color: var(--ink); font-size: 19px; line-height: 1.5; margin: 0; }
+    .open .cake-wrapper { position: relative; margin: 36px auto 0; width: 200px; height: 220px; }
+    .open .cake {
+      width: 180px; height: 170px;
+      background: linear-gradient(135deg, #ffe0e8 0%, #ffd1f0 100%);
+      border-radius: 50% 50% 40% 40%;
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      border: 10px solid #ffd1e8;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+    .open .cake::after { content: ""; position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); width: 40px; height: 16px; background: #d6a6c7; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .open .candle {
+      position: absolute; top: 26px; width: 24px; height: 38px;
+      background: #e86a6a; border-radius: 4px 4px 0 0;
+      cursor: pointer; transform: translateX(-50%);
+      transition: opacity 0.2s ease;
+    }
+    .open .candle:nth-child(1) { left: 14%; }
+    .open .candle:nth-child(2) { left: 32%; }
+    .open .candle:nth-child(3) { left: 50%; }
+    .open .candle:nth-child(4) { left: 68%; }
+    .open .candle:nth-child(5) { left: 86%; }
+    .open .candle .flame {
+      position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 10px solid transparent; border-right: 10px solid transparent;
+      border-bottom: 20px solid var(--candle-flame);
+    }
+    .open .candle.out { opacity: 0.25; }
+    .open .candle.out .flame { display: none; }
+    .open .open-inst { text-align: center; color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+    .open .light-again { margin: 24px auto 0; text-align: center; }
+    .open .light-again button {
+      background: var(--accent); color: white; border: none; border-radius: 28px;
+      padding: 12px 24px; font-size: 17px; font-weight: 700; min-width: 180px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* ---- Closed: surprise ---- */
+    .closed .header { text-align: center; padding: 48px 24px 0; }
+    .closed .header h1 { font-family: "DM Serif Display", Georgia, serif; font-size: clamp(36px, 9vw, 60px); letter-spacing: -2px; color: var(--accent); margin: 0; }
+    .closed .subtitle { color: var(--muted); font-size: 19px; margin: 12px 0 0; }
+    .closed .message { max-width: 320px; margin: 32px auto; text-align: center; color: var(--muted); font-size: 17px; line-height: 1.6; }
+    .closed .cake { width: 90px; height: 90px; background: #ffd1e0; border-radius: 50% 50% 30% 30%; margin: 40px auto; border: 6px solid #ffd1e8; position: relative; }
+    .closed .cake::after { content: ""; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 20px; height: 8px; background: #d69eab; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+    /* ---- Confetti canvas ---- */
+    #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .screen, .candle { transition: none; }
+    }
+    @media (max-width: 400px) {
+      .open .cake { width: 160px; height: 150px; }
+      .open .candle { width: 22px; height: 34px; }
+      .open .candle .flame { border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 16px solid var(--candle-flame); top: -18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+
+    <!-- Locked: countdown -->
+    <section class="screen locked" id="screen-locked" aria-label="Countdown to birthday">
+      <div class="countdown" id="countdown">00:00:00</div>
+      <p class="subtitle">A birthday surprise is unlocking...</p>
+      <div class="cake" aria-hidden="true">
+        <div class="candle"><div class="flame"></div></div>
+        <div class="candle"><div class="flame"></div></div>
+        <div class="candle"><div class="flame"></div></div>
+        <div class="candle"><div class="flame"></div></div>
+        <div class="candle"><div class="flame"></div></div>
+      </div>
+    </section>
+
+    <!-- Open: AI birthday greeting -->
+    <section class="screen open" id="screen-open" aria-label="AI birthday greeting">
+      <header class="header">
+        <h1 id="friend-name">Happy Birthday!</h1>
+      </header>
+      <section class="greeting-card" id="greeting-card">
+        <p class="wish-text" id="ai-wish">Thinking of the perfect wish…</p>
+      </section>
+      <div class="cake-wrapper" id="cake-wrapper">
+        <div class="cake" aria-label="Birthday cake with five candles">
+          <div class="candle"><div class="flame"></div></div>
+          <div class="candle"><div class="flame"></div></div>
+          <div class="candle"><div class="flame"></div></div>
+          <div class="candle"><div class="flame"></div></div>
+          <div class="candle"><div class="flame"></div></div>
+        </div>
+      </div>
+      <p class="open-inst" id="open-inst">Tap the candles to blow them out.</p>
+      <div class="light-again" id="light-again" style="display:none;">
+        <button type="button">Light Again</button>
+      </div>
+    </section>
+
+    <!-- Closed: "just for your birthday" -->
+    <section class="screen closed" id="screen-closed" aria-label="Birthday has passed">
+      <header class="header">
+        <h1>Happy Birthday!</h1>
+        <p class="subtitle">This surprise was just for your birthday.</p>
+      </header>
+      <div class="cake" aria-hidden="true"></div>
+      <p class="message">Thanks for sharing this special day. Come back next year!</p>
+    </section>
+
+  </main>
+
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <script src="/moment.min.js"></script>
+  <script type="application/json" id="birthday-state" aria-hidden="true">__BIRTHDAY_STATE_PLACEHOLDER__</script>
+
+  <script>
+    // ---------- Bootstrap state from server ----------
+    (function () {
+      const el = document.getElementById("birthday-state");
+      let serverState = {};
+      try { serverState = JSON.parse(el.textContent || el.innerText || "{}"); } catch (e) { /* fall through */ }
+
+      function show(screenId) {
+        ["screen-locked", "screen-open", "screen-closed"].forEach(function (id) {
+          const node = document.getElementById(id);
+          if (node) node.classList.toggle("active", id === screenId);
+        });
+      }
+
+      // Compute the birthday state from the BROWSER's own timezone via Moment.
+      // Open window starts at midnight of (birthday - 1 day) and ends at end of birthday day.
+      let state = "locked";
+      let targetMs = null;
+      if (serverState.birthYmd && typeof window.moment === "function") {
+        const birthStart = window.moment(serverState.birthYmd, "YYYY-MM-DD").startOf("day");
+        const openStart = birthStart.clone().subtract(1, "day");
+        const openEnd = birthStart.clone().add(1, "day");
+        const now = window.moment();
+        targetMs = openStart.valueOf();
+        if (now.isBefore(openStart)) state = "locked";
+        else if (now.isBefore(openEnd)) state = "open";
+        else state = "closed";
+      } else {
+        // Fallback: trust the server state.
+        state = serverState.state || "locked";
+        targetMs = serverState.targetTs || serverState.targetMs || null;
+      }
+
+      if (state === "locked") {
+        show("screen-locked");
+        if (targetMs) {
+          const target = Number(targetMs);
+          const tick = function () {
+            const diff = target - Date.now();
+            if (diff <= 0) {
+              document.getElementById("countdown").textContent = "00:00:00";
+              setTimeout(function () { window.location.reload(); }, 500);
+              return;
+            }
+            const days = Math.floor(diff / 86400000);
+            const hrs = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, "0");
+            const mins = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
+            const secs = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+            document.getElementById("countdown").textContent =
+              days > 0 ? days + "d " + hrs + ":" + mins + ":" + secs : hrs + ":" + mins + ":" + secs;
+          };
+          tick();
+          setInterval(tick, 1000);
+        }
+      } else if (state === "open") {
+        show("screen-open");
+        document.getElementById("friend-name").textContent = "Happy birthday, " + (serverState.friendName || "friend") + "!";
+        // Tone is no longer displayed anywhere.
+        // While the candles are lit, show a "blow" message — the wish only
+        // appears AFTER all candles go out (handled by extinguishOne → triggerWishFlow).
+        document.getElementById("ai-wish").textContent = "Blow all candles off!";
+        document.getElementById("light-again").style.display = "none";
+      } else if (state === "closed") {
+        show("screen-closed");
+      }
+    })();
+
+    // ---------- AI wish rendering ----------
+    function renderWish() {
+      const wishEl = document.getElementById("ai-wish");
+      const lightAgain = document.getElementById("light-again");
+      wishEl.textContent = "Thinking of the perfect wish…";
+
+      fetch("/wish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wishes: window.wishHistory || [], count: 1 })
+      })
+        .then(function (resp) {
+          if (!resp.ok) throw new Error("wish request failed: " + resp.status);
+          return resp.json();
+        })
+        .then(function (data) {
+          let wishes = [];
+          if (data && Array.isArray(data.wishes)) {
+            wishes = data.wishes.map(function (w) { return (typeof w === "string" ? w.trim() : ""); }).filter(function (w) { return w; });
+          } else if (data && typeof data.wish === "string") {
+            wishes = [data.wish.trim()];
+          }
+          const mainWish = wishes[0] || "Happy birthday! Wishing you a day filled with joy and wonderful surprises. 🎂";
+          window.wishHistory = (window.wishHistory || []).concat([mainWish]).slice(-8); // remember recent, avoid repeats
+          wishEl.textContent = mainWish;
+          lightAgain.style.display = "block";
+          startConfetti();
+        })
+        .catch(function (err) {
+          console.error(err);
+          wishEl.textContent = "Happy birthday! Wishing you a day filled with joy and wonderful surprises. 🎂";
+          lightAgain.style.display = "block";
+          startConfetti();
+        });
+    }
+
+    // ---------- Confetti engine ----------
+    function startConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const colors = ["#ff6b6b", "#ff8c42", "#ffa366", "#ffd93d", "#a8e6cf", "#8dc8da", "#e88e71"];
+      const w = canvas.width = window.innerWidth;
+      const h = canvas.height = window.innerHeight;
+      const particles = [];
+      for (let i = 0; i < 140; i++) {
+        particles.push({
+          shape: Math.random() > 0.5 ? "rect" : "circle",
+          x: Math.random() * w,
+          y: -Math.random() * h,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vx: (Math.random() - 0.5) * 14,
+          vy: Math.random() * 4 + 4,
+          rot: Math.random() * 360,
+          vr: (Math.random() - 0.5) * 12,
+        });
+      }
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, w, h);
+        let alive = 0;
+        particles.forEach(function (p) {
+          p.vy += 0.25;
+          p.vy *= 0.99;
+          p.vx *= 0.99;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vr;
+          if (p.y < h + 20) alive++;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          if (p.shape === "rect") {
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, Math.max(0.5, p.size / 2), 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        });
+        frame++;
+        if (alive > 0 && frame < 900) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, w, h);
+      }
+      animate();
+    }
+
+    // ---------- Candle interaction ----------
+    const candles = Array.prototype.slice.call(document.querySelectorAll(".open .candle"));
+    let litCount = candles.length;
+
+    function extinguishOne() {
+      if (litCount <= 0) return;
+      const firstLit = candles.find(function (c) { return !c.classList.contains("out"); });
+      if (!firstLit) return;
+      firstLit.classList.add("out");
+      litCount--;
+      if (litCount === 0) triggerWishFlow();
+    }
+
+    function triggerWishFlow() {
+      // All candles out → a fresh AI wish with confetti.
+      document.getElementById("light-again").style.display = "block";
+      renderWish();
+    }
+
+    candles.forEach(function (c) {
+      c.addEventListener("click", extinguishOne);
+    });
+
+    // ---------- "Light Again" → relight candles (no new wish until blown out again) ----------
+    document.getElementById("light-again").addEventListener("click", function () {
+      litCount = candles.length;
+      candles.forEach(function (c) { c.classList.remove("out"); });
+      document.getElementById("light-again").style.display = "none";
+      document.getElementById("ai-wish").textContent = "Blow all candles off!";
+    });
+  </script>
+</body>
+</html>

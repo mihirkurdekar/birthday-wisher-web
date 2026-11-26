@@ -1,0 +1,14 @@
+node_modules/
+function.zip
+.env
+.env.local
+.DS_Store
+*.log
+npm-debug.log*
+.idea/
+.vscode/
+terraform/terraform.tfvars
+terraform/*.tfvars
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform/
