@@ -2,7 +2,7 @@
 // Keeps the offline shell alive (the "This surprise was just for your birthday"
 // page) and caches the HTML + essential assets.
 
-const STATIC_CACHE = "birthday-wisher-static-v2";
+const STATIC_CACHE = "birthday-wisher-static-v4";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -12,6 +12,7 @@ self.addEventListener("install", (event) => {
         "/index.html",
         "/manifest.json",
         "/sw.js",
+        "/jquery.min.js",
       ]);
     })
   );

@@ -77,6 +77,7 @@ resource "aws_lambda_function" "birthday_wisher" {
     variables = {
       FRIEND_NAME      = var.friend_name
       BIRTH_DATE       = var.birth_date
+      TIME_ZONE        = var.time_zone
       TONE             = var.tone
       MEMORIES         = var.memories
       AI_API_KEY       = var.ai_api_key
